@@ -23,14 +23,14 @@ function HomePage() {
         </p>
 
         <div className="page-placeholder__actions">
-          <Link to="/tenant" className="button button--primary">
-            View tenant portal
-          </Link>
+  <Link to="/login" className="button button--primary">
+    Sign in to Nestra
+  </Link>
 
-          <Link to="/admin" className="button button--secondary">
-            View admin portal
-          </Link>
-        </div>
+  <a href="#about" className="button button--secondary">
+    Learn more
+  </a>
+</div>
       </div>
     </main>
   )

@@ -6,6 +6,7 @@ import LoginPage from './pages/public/LoginPage'
 import NotFoundPage from './pages/public/NotFoundPage'
 import RegisterPage from './pages/public/RegisterPage'
 import TenantDashboardPage from './pages/tenant/TenantDashboardPage'
+import ProtectedRoute from './routes/ProtectedRoute'
 
 function App() {
   return (
@@ -14,8 +15,13 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      <Route path="/admin" element={<AdminDashboardPage />} />
-      <Route path="/tenant" element={<TenantDashboardPage />} />
+      <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+        <Route path="/admin" element={<AdminDashboardPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={['tenant']} />}>
+        <Route path="/tenant" element={<TenantDashboardPage />} />
+      </Route>
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

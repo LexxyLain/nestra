@@ -196,3 +196,39 @@ textarea {
     width: 100%;
   }
 }
+.route-loader {
+  display: grid;
+  min-height: 100vh;
+  padding: var(--space-6);
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  background: var(--color-background);
+}
+
+.route-loader__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent-600);
+  border-radius: 50%;
+  animation: route-spinner 700ms linear infinite;
+}
+
+.route-loader p {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+@keyframes route-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-loader__spinner {
+    animation-duration: 1.5s;
+  }
+}

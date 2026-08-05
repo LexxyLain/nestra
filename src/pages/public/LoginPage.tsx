@@ -1,17 +1,75 @@
 import { useState, type FormEvent } from 'react'
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
-import { Link } from 'react-router'
+import {
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
 
 import nestraLogo from '../../assets/branding/nestra-logo.svg'
+import { supabase } from '../../services/supabase'
 import '../../styles/auth.css'
 
 function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate()
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    console.log('Login submitted')
+    setFormError('')
+    setIsSubmitting(true)
+
+    const form = new FormData(event.currentTarget)
+
+    const email = String(form.get('email')).trim()
+    const password = String(form.get('password'))
+
+    try {
+      const { data, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+      if (loginError) {
+        throw loginError
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, account_status')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut()
+
+        throw new Error(
+          'Your account profile could not be loaded. Please contact the administrator.',
+        )
+      }
+
+      if (profile.role === 'admin') {
+        navigate('/admin', { replace: true })
+        return
+      }
+
+      navigate('/tenant', { replace: true })
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'We could not sign you in. Please try again.'
+
+      setFormError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -46,6 +104,7 @@ function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -55,7 +114,11 @@ function LoginPage() {
               <div className="form-label-row">
                 <label htmlFor="password">Password</label>
 
-                <button type="button" className="text-button">
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={isSubmitting}
+                >
                   Forgot password?
                 </button>
               </div>
@@ -69,6 +132,7 @@ function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   autoComplete="current-password"
+                  disabled={isSubmitting}
                   required
                 />
 
@@ -79,6 +143,7 @@ function LoginPage() {
                   aria-label={
                     showPassword ? 'Hide password' : 'Show password'
                   }
+                  disabled={isSubmitting}
                 >
                   {showPassword ? (
                     <EyeOff size={19} aria-hidden="true" />
@@ -89,23 +154,27 @@ function LoginPage() {
               </div>
             </div>
 
-            <label className="checkbox-field">
-              <input type="checkbox" name="remember" />
+            {formError && (
+              <p className="form-error" role="alert">
+                {formError}
+              </p>
+            )}
 
-              <span>Keep me signed in</span>
-            </label>
-
-            <button type="submit" className="auth-submit">
-              Sign in
+            <button
+              type="submit"
+              className="auth-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
           <p className="auth-footer-text">
-  Looking for a place to stay?{' '}
-  <Link to="/register" className="text-button">
-    Create an account
-  </Link>
-</p>
+            Looking for a place to stay?{' '}
+            <Link to="/register" className="text-button">
+              Create an account
+            </Link>
+          </p>
         </div>
 
         <p className="auth-copyright">
@@ -119,7 +188,9 @@ function LoginPage() {
         <div className="auth-visual__glow auth-visual__glow--two" />
 
         <div className="auth-visual__content">
-          <span className="auth-visual__badge">Everything in one place</span>
+          <span className="auth-visual__badge">
+            Everything in one place
+          </span>
 
           <blockquote>
             “A calmer way to manage the place you call home.”

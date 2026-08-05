@@ -11,6 +11,7 @@ import {
 import { Link } from 'react-router'
 
 import nestraLogo from '../../assets/branding/nestra-logo.svg'
+import { supabase } from '../../services/supabase'
 import '../../styles/auth.css'
 
 type ApplicantType = 'student' | 'professional'
@@ -21,28 +22,70 @@ function RegisterPage() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const [passwordError, setPasswordError] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    setFormError('')
+    setSuccessMessage('')
+
     const form = new FormData(event.currentTarget)
+
+    const firstName = String(form.get('firstName')).trim()
+    const lastName = String(form.get('lastName')).trim()
+    const email = String(form.get('email')).trim()
     const password = String(form.get('password'))
     const confirmPassword = String(form.get('confirmPassword'))
 
     if (password !== confirmPassword) {
-      setPasswordError('The passwords you entered do not match.')
+      setFormError('The passwords you entered do not match.')
       return
     }
 
-    setPasswordError('')
+    if (password.length < 8) {
+      setFormError('Your password must contain at least eight characters.')
+      return
+    }
 
-    console.log({
-      firstName: form.get('firstName'),
-      lastName: form.get('lastName'),
-      email: form.get('email'),
-      applicantType,
-    })
+    try {
+      setIsSubmitting(true)
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            applicant_type: applicantType,
+          },
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      setSuccessMessage(
+        'Your account was created. Check your email to confirm your account before signing in.',
+      )
+
+      event.currentTarget.reset()
+      setApplicantType('student')
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'We could not create your account. Please try again.'
+
+      setFormError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -65,7 +108,7 @@ function RegisterPage() {
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
-            <fieldset className="account-type">
+            <fieldset className="account-type" disabled={isSubmitting}>
               <legend>I am applying as a</legend>
 
               <div className="account-type__options">
@@ -130,6 +173,7 @@ function RegisterPage() {
                     type="text"
                     placeholder="First name"
                     autoComplete="given-name"
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -147,6 +191,7 @@ function RegisterPage() {
                     type="text"
                     placeholder="Last name"
                     autoComplete="family-name"
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -165,6 +210,7 @@ function RegisterPage() {
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -184,6 +230,7 @@ function RegisterPage() {
                     placeholder="At least 8 characters"
                     autoComplete="new-password"
                     minLength={8}
+                    disabled={isSubmitting}
                     required
                   />
 
@@ -194,6 +241,7 @@ function RegisterPage() {
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
                     }
+                    disabled={isSubmitting}
                   >
                     {showPassword ? (
                       <EyeOff size={19} aria-hidden="true" />
@@ -217,6 +265,7 @@ function RegisterPage() {
                     placeholder="Repeat password"
                     autoComplete="new-password"
                     minLength={8}
+                    disabled={isSubmitting}
                     required
                   />
 
@@ -231,6 +280,7 @@ function RegisterPage() {
                         ? 'Hide password confirmation'
                         : 'Show password confirmation'
                     }
+                    disabled={isSubmitting}
                   >
                     {showConfirmation ? (
                       <EyeOff size={19} aria-hidden="true" />
@@ -242,14 +292,25 @@ function RegisterPage() {
               </div>
             </div>
 
-            {passwordError && (
+            {formError && (
               <p className="form-error" role="alert">
-                {passwordError}
+                {formError}
+              </p>
+            )}
+
+            {successMessage && (
+              <p className="form-success" role="status">
+                {successMessage}
               </p>
             )}
 
             <label className="checkbox-field checkbox-field--terms">
-              <input type="checkbox" name="terms" required />
+              <input
+                type="checkbox"
+                name="terms"
+                disabled={isSubmitting}
+                required
+              />
 
               <span>
                 I agree to Nestra’s terms of use and acknowledge the privacy
@@ -257,8 +318,12 @@ function RegisterPage() {
               </span>
             </label>
 
-            <button type="submit" className="auth-submit">
-              Create account
+            <button
+              type="submit"
+              className="auth-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 

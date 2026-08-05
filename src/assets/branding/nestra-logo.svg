@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" role="img" aria-labelledby="title description">
+  <title id="title">Nestra</title>
+  <desc id="description">A refined home and letter N cradled by a warm woven nest.</desc>
+
+  <!-- A compact shelter held by an open nest: warm, recognizable, and scalable. -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M72 154V88L152 34L232 88V154" stroke="#44312B" stroke-width="22"/>
+    <path d="M108 143V105L152 75L196 105V143" stroke="#C87457" stroke-width="15"/>
+
+    <!-- Three woven curves form one compact, recognizable nest. -->
+    <path d="M45 157C88 193 216 193 259 157" stroke="#44312B" stroke-width="18"/>
+    <path d="M68 189C108 216 196 216 236 189" stroke="#C87457" stroke-width="14"/>
+    <path d="M99 220C132 235 172 235 205 220" stroke="#D6A77D" stroke-width="11"/>
+  </g>
+
+  <!-- Warm doorway / welcome point. -->
+  <path d="M140 149V121C140 113 146 107 154 107C162 107 168 113 168 121V149Z" fill="#F3DDC2"/>
+
+  <!-- A soft editorial serif makes the identity feel residential rather than corporate. -->
+  <text x="316" y="184"
+        fill="#44312B"
+        font-family="Georgia, Charter, Cambria, serif"
+        font-size="124"
+        font-weight="700"
+        letter-spacing="-2">Nestra</text>
+
+</svg>
